@@ -37,7 +37,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST = 100;
 
     private WebView webView;
-    private SwipeRefreshLayout swipeRefresh;
+    private FloatingActionButton refreshButton;
     private ProgressBar progressBar;
     private TextView errorView;
     private FrameLayout fullScreenContainer;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-        swipeRefresh = findViewById(R.id.swipeRefresh);
+        refreshButton = findViewById(R.id.refreshButton);
         progressBar = findViewById(R.id.progressBar);
         errorView = findViewById(R.id.errorView);
         fullScreenContainer = findViewById(R.id.fullScreenContainer);
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         setupCookieManager();
         setupWebView();
-        setupSwipeRefresh();
+        setupRefreshButton();
         setupDownloadListener();
 
         loadHomePage();
@@ -144,17 +144,14 @@ public class MainActivity extends AppCompatActivity {
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
 
-    private void setupSwipeRefresh() {
-        swipeRefresh.setColorSchemeResources(
-            android.R.color.holo_blue_bright,
-            android.R.color.holo_green_light,
-            android.R.color.holo_orange_light
-        );
-        swipeRefresh.setOnRefreshListener(() -> {
+    private void setupRefreshButton() {
+        refreshButton.setOnClickListener(v -> {
             if (isNetworkAvailable()) {
                 webView.reload();
+                refreshButton.setAlpha(0.5f);
+                new Handler(Looper.getMainLooper()).postDelayed(() ->
+                    refreshButton.setAlpha(1.0f), 1000);
             } else {
-                swipeRefresh.setRefreshing(false);
                 showError("无网络连接，请检查网络设置");
             }
         });
@@ -228,7 +225,6 @@ public class MainActivity extends AppCompatActivity {
             super.onPageFinished(view, url);
             isLoading = false;
             progressBar.setVisibility(View.GONE);
-            swipeRefresh.setRefreshing(false);
             CookieManager.getInstance().flush();
 
             // 强制移动端视口适配
