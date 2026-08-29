@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setDatabaseEnabled(true);
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
+        settings.setTextZoom(100);
         settings.setSupportZoom(true);
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
@@ -229,6 +230,31 @@ public class MainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
             swipeRefresh.setRefreshing(false);
             CookieManager.getInstance().flush();
+
+            // 强制移动端视口适配
+            String viewportJS = "javascript:(function() {" +
+                "var meta = document.querySelector('meta[name=\"viewport\"]');" +
+                "if (!meta) {" +
+                "  meta = document.createElement('meta');" +
+                "  meta.name = 'viewport';" +
+                "  document.getElementsByTagName('head')[0].appendChild(meta);" +
+                "}" +
+                "meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';" +
+                "document.body.style.width = '100%';" +
+                "document.body.style.maxWidth = '100%';" +
+                "document.documentElement.style.width = '100%';" +
+                "var elements = document.querySelectorAll('*');" +
+                "for (var i = 0; i < elements.length; i++) {" +
+                "  if (elements[i].style.width && elements[i].style.width.indexOf('px') > -1) {" +
+                "    var w = parseInt(elements[i].style.width);" +
+                "    if (w > window.innerWidth) {" +
+                "      elements[i].style.width = '100%';" +
+                "      elements[i].style.maxWidth = '100%';" +
+                "    }" +
+                "  }" +
+                "}" +
+                "})()";
+            view.evaluateJavascript(viewportJS, null);
         }
 
         @Override
