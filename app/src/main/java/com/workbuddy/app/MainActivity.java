@@ -37,7 +37,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import android.view.MotionEvent;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST = 100;
 
     private WebView webView;
-    private FloatingActionButton refreshButton;
+    private View refreshButton;
+    private float dX, dY;
+    private float startX, startY;
+    private boolean isDragging = false;
     private ProgressBar progressBar;
     private TextView errorView;
     private FrameLayout fullScreenContainer;
@@ -65,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-        refreshButton = findViewById(R.id.refreshButton);
+        refreshButton = findViewById(R.id.floatRefreshButton);
         progressBar = findViewById(R.id.progressBar);
         errorView = findViewById(R.id.errorView);
         fullScreenContainer = findViewById(R.id.fullScreenContainer);
@@ -145,15 +148,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupRefreshButton() {
-        refreshButton.setOnClickListener(v -> {
-            if (isNetworkAvailable()) {
-                webView.reload();
-                refreshButton.setAlpha(0.5f);
-                new Handler(Looper.getMainLooper()).postDelayed(() ->
-                    refreshButton.setAlpha(1.0f), 1000);
-            } else {
-                showError("无网络连接，请检查网络设置");
+        refreshButton.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    dX = v.getX() - event.getRawX();
+                    dY = v.getY() - event.getRawY();
+                    startX = event.getRawX();
+                    startY = event.getRawY();
+                    isDragging = false;
+                    v.setAlpha(0.8f);
+                    return true;
+
+                case MotionEvent.ACTION_MOVE:
+                    float moveX = event.getRawX() + dX;
+                    float moveY = event.getRawY() + dY;
+                    v.animate()
+                        .x(moveX)
+                        .y(moveY)
+                        .setDuration(0)
+                        .start();
+                    if (Math.abs(event.getRawX() - startX) > 10 ||
+                        Math.abs(event.getRawY() - startY) > 10) {
+                        isDragging = true;
+                    }
+                    return true;
+
+                case MotionEvent.ACTION_UP:
+                    v.setAlpha(1.0f);
+                    if (!isDragging) {
+                        if (isNetworkAvailable()) {
+                            webView.reload();
+                            v.setAlpha(0.5f);
+                            new Handler(Looper.getMainLooper()).postDelayed(() ->
+                                v.setAlpha(1.0f), 800);
+                        } else {
+                            showError("无网络连接，请检查网络设置");
+                        }
+                    }
+                    return true;
             }
+            return false;
         });
     }
 

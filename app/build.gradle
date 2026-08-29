@@ -6,29 +6,37 @@ android {
     namespace 'com.workbuddy.app'
     compileSdk 34
 
+    signingConfigs {
+        release {
+            storeFile file('../workbuddy-release.keystore')
+            storePassword 'workbuddy123'
+            keyAlias 'workbuddy'
+            keyPassword 'workbuddy123'
+        }
+    }
+
     defaultConfig {
         applicationId "com.workbuddy.app"
         minSdk 24
         targetSdk 34
-        versionCode 2
-        versionName "1.0.2"
+        versionCode 4
+        versionName "1.0.4"
     }
-
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-
     lint {
         abortOnError false
     }
